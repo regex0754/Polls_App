@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+		
+
+<!--- JUMBOTRON --->
+	   <div class="jumbotron jumbotron-fluid" style="background:transparent !important">
+	    	<div class="container" style="position: relative; height:500px; width:500px">
+    		<!-- <p id="change">Default</p> -->
+	    		<canvas id="myChart" height=50px width="50px"></canvas>
+	        </div>
+      </div>
+      
+
+	  <div class="container" style="text-align: center">
+              <p>{{question}}</p>
+              <!-- Party: <input type="text" id="poll_data" value=""> -->
+              {% for c in choice %}
+              <form id="choice" method="POST" action="/select/">
+                {% csrf_token %}
+                <input type="hidden" name="choice_c" value="{{c.choice_text}}"/>
+                <input type="submit" name="choice" value="{{c.choice_text}}"/>
+              </form>
+              {%endfor%}
+	  		<br><br>
+              <button onclick="check()">Cast Vote (Out Of Order)</button>
+              
+              {% for c in choice %}
+                <p>Votes for {{c.choice_text}}: {{c.votes}} </p>
+              {%endfor%}
+
+	  		<br>
+	  		<p id="state"></p>
+	  </div>
+
+
+
+<!-- links and address --->
+		<script>
+
+			var d_Val=[0,0,0]; //Initialized all to zero 
+
+			// stores id
+			var data= new Set();
+
+			//document.getElementById('change').innerHTML=;
+			let myChart=document.getElementById('myChart').getContext('2d');
+
+			Chart.defaults.global.defaultFontFamily = 'Lato';
+			Chart.defaults.global.defaultFontSize = 13;
+			Chart.defaults.global.defaultFontColor = '#750624';
+
+			let Polls = new Chart(myChart, 
+				{ 
+					type:'bar',
+					data:
+					{
+						labels:['A','B','C'],
+						
+						datasets:
+						[
+						  {
+						  	label:'Polls',
+						  	data:[0,0,0],
+						  	backgroundColor:['#f2b141','#cf2121','#16294d'],
+							borderWidth: 2,
+							borderColor: '#615d5d',
+							hoverBorderColor: '#121111',
+							hoverBorderWidth: 4
+						  }
+						],
+
+						
+					},
+
+					options:
+					{
+						title:
+						{
+							text: 'Polling for Political Parties',
+							fontSize: 17,
+							fontColor: '#2d3e5e'
+						}
+					}	
+
+				} );
+
+
+				// ADD NEW DATA
+				function addData(myChart, label, data) {
+				myChart.data.labels.push(label);
+				myChart.data.datasets.forEach((dataset) => {
+					dataset.data.push(data);
+			    });
+			    myChart.update();
+			    }
+			    
+
+			    // REMOVE PREVIOUS DATA
+				function removeData(myChart) {
+			    myChart.data.labels.pop();
+			    myChart.data.datasets.forEach((dataset) => {
+			        dataset.data.pop();
+			    });
+			    myChart.update();
+				}
+
+				// CHECK FOR ID 
+				function check()
+			{
+				var id=document.getElementById('id_data').value;
+				var party=document.getElementById('poll_data').value;
+
+				if (id==""||party==""||id=="NULL"||party=="NULL")
+				{
+					document.getElementById('state').innerHTML=" Don't enter empty id/party ";
+				}
+				else if (data.has(id))
+				{
+					// already polled
+					document.getElementById('state').innerHTML=" Sorry! "+id+" already Voted";
+				}
+				else
+				{
+					// increase poll value of given party
+
+					if (party=="A")
+					{
+						d_Val[0]++;
+
+						for (let i=0;i<3;i++)
+						removeData(Polls);
+
+						addData(Polls,"A",d_Val[0]);
+						addData(Polls,"B",d_Val[1]);
+						addData(Polls,"C",d_Val[2]);
+						document.getElementById('state').innerHTML=" Hurray! "+id+" Voted for "+party;
+						data.add(id);
+					}
+					else if (party=="B")
+					{
+						d_Val[1]++;
+
+						for (let i=0;i<3;i++)
+						removeData(Polls);
+
+						addData(Polls,"A",d_Val[0]);
+						addData(Polls,"B",d_Val[1]);
+						addData(Polls,"C",d_Val[2]);
+						document.getElementById('state').innerHTML=" Hurray! "+id+" Voted for "+party;
+						data.add(id);
+					}
+					else if (party=="C")
+					{
+						d_Val[2]++;
+
+						for (let i=0;i<3;i++)
+						removeData(Polls);
+
+						addData(Polls,"A",d_Val[0]);
+						addData(Polls,"B",d_Val[1]);
+						addData(Polls,"C",d_Val[2]);
+						document.getElementById('state').innerHTML=" Hurray! "+id+" Voted for "+party;
+						data.add(id);
+					}
+					else
+					{
+						document.getElementById('state').innerHTML=" InValid Input of party ";
+					}
+				}
+			}
+
+		</script>
+</body>
+
+</html>
